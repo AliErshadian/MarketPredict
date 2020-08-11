@@ -16,11 +16,11 @@ def visualize():
     plt.figure(figsize=(12.2, 4.5))
     plt.title('Buy & Sell Plot', fontsize=18)
 
+    #plot 3 moving average
     plt.plot(df['Close Price'], label='Close Price', color='blue', alpha = 0.35)
     plt.plot(ShortEMA, label='Short/Fast EMA', color='red', alpha = 0.35)
     plt.plot(MiddleEMA, label='Middle/Medium EMA', color='orange', alpha = 0.35)
     plt.plot(LongEMA, label='Long/Slow EMA', color='green', alpha = 0.35)
-
     plt.scatter(df.index, df['Buy'], color = 'green', marker='^', alpha = 1)
     plt.scatter(df.index, df['Sell'], color = 'red', marker='v', alpha = 1)
 
