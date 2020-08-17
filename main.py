@@ -4,12 +4,10 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
-
 plt.style.use('fivethirtyeight')
 
 #read csv file into data frame
 df = pd.read_csv("shapna.csv")
-
 #set date to right foramt and into the index of data farme
 df['Date'] = pd.to_datetime(df['Date'], format='%Y%m%d').dt.strftime("%Y-%m-%d")
 df = df.set_index(pd.DatetimeIndex(df['Date'].values))
@@ -28,7 +26,7 @@ df['Long'] = EMAfunc(63)
 
 #Macd and signal line indicators
 MACD = EMAfunc(12) - EMAfunc(26)
-MACDsignal = MACD.ewm(span=9, adjust=False).mean()\
+MACDsignal = MACD.ewm(span=9, adjust=False).mean()
 
 #add macd and signal line to data frame
 df['MACD'] = MACD
@@ -101,12 +99,54 @@ df['SellMACD'] = buy_sell[3]
 
 
 
+#machine learning part
+def PredictMarketPrice(data):
+    _df = data['Close Price']
+
+    #Create a variable to predict 'x' ays out into the future
+    future_days = 25
+
+    #Create a new column (target) shifted 'x' units/days up
+    _df['Prediction'] = _df[['Close Price']].shift(-future_days)
+
+    #Create the feature data set (X) and convert it to a numpy array and remove the last 'x' rows/days
+    X = np.array(_df.drop(['Prediction'], 1))[:-future_days]
+
+    #Create the target data set (Y) and convert it to a numpy array and get all the target values except the last 'x' rows/days
+    Y = np.array(_df['Prediction'])[:-future_days]
+
+    #Split the data into 75% training and 25% testing
+    x_train, x_test, y_tarin, y_test = train_test_split(X, Y, test_size= 0.25)
+
+    #Create the models
+    #Create the decision tree regressor model
+    tree = DecisionTreeRegressor().fit(x_train, y_tarin)
+
+    #Create the linear regression model
+    lr = LinearRegression().fit(x_train, y_tarin)
+
+    #Get the last 'x' rows of the future data set
+    x_future = _df.drop(['Prediction'], 1)[:-future_days]
+    x_future = x_future.tail(future_days)
+    x_future = np.array(x_future)
+
+    #Show the model tree prediction
+    tree_prediction = tree.predict(x_future)
+    print(tree_prediction)
+
+    print()
+
+    #Show the model linear regression prediction
+    lr_prediction = lr.predict(x_future)
+    print(lr_prediction)
+
+
+
 
 #visualize data
 def EMAvisualize():
     plt.figure(figsize=(12.2, 4.5))
     plt.title('Buy & Sell Plot', fontsize=18)
-
     #plot 3 moving average
     plt.plot(df['Close Price'], label='Close Price', color='blue', alpha = 0.35)
     plt.plot(EMAfunc(5), label='Short/Fast EMA', color='red', alpha = 0.35)
@@ -114,34 +154,35 @@ def EMAvisualize():
     plt.plot(EMAfunc(63), label='Long/Slow EMA', color='green', alpha = 0.35)
     plt.scatter(df.index, df['BuyEMA'], color= 'green', marker='^', alpha = 1)
     plt.scatter(df.index, df['SellEMA'], color= 'red', marker='v', alpha = 1)
-
     plt.xticks(rotation=45)
     plt.xlabel('Date', fontsize =18)
     plt.ylabel('Close Price', fontsize=18)
-
     plt.legend(loc='upper left')
     plt.show()
     print(df)
 
 def MACDvisualize():
     plt.figure(figsize=(12.2, 4.5))
-
     plt.plot(df['Close Price'], label='Close Price', color='black', alpha = 0.35)
     plt.plot(df.index, MACD, label='MACD Line', color='red')
     plt.plot(df.index, MACDsignal, label='Signal Line', color='blue')
-
     plt.scatter(df.index, df['BuyMACD'], color='green', marker='^', alpha=1)
     plt.scatter(df.index, df['SellMACD'], color='red', marker='v', alpha=1)
-
     plt.legend(loc='upper left')
     plt.show()
     print(df)
 
-
-
+def visualize():
+    plt.figure(figsize=(16, 8))
+    plt.plot(df['Close Price'], label='Close Price')
+    plt.xlabel('Date', fontsize=18)
+    plt.ylabel('Close Price', fontsize=18)
+    plt.legend(loc='upper left')
+    plt.show()
 
 
 
 
 #EMAvisualize()
-MACDvisualize()
+#MACDvisualize()
+#visualize()
