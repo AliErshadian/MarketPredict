@@ -19,9 +19,9 @@ def EMAfunc(_span):
     return EMA
 
 #add 3 moving avg to data frame
-df['Short'] = EMAfunc(5)
-df['Middle'] = EMAfunc(21)
-df['Long'] = EMAfunc(63)
+df['Short'] = EMAfunc(15)
+df['Middle'] = EMAfunc(20)
+df['Long'] = EMAfunc(40)
 
 
 #Macd and signal line indicators
@@ -41,6 +41,8 @@ def buy_sell_function(data):
 
     buyMACD_list = []
     sellMACD_list = []
+
+    short_touch_list = []
     flag_MACD = False
 
 
@@ -66,6 +68,14 @@ def buy_sell_function(data):
             buyEMA_list.append(np.nan)
             sellEMA_list.append(np.nan)
 
+        if i != len(data)-1 and i != 0:
+            if data['Short'][i-1] > data['Close Price'][i-1] and data['Short'][i+1] < data['Close Price'][i+1] or data['Short'][i-1] < data['Close Price'][i-1] and data['Short'][i+1] > data['Close Price'][i+1]:
+                short_touch_list.append(data['Close Price'][i])
+            else:
+                short_touch_list.append(np.nan)
+        else:
+            short_touch_list.append(np.nan)
+
 
         #MACD buy and sell calculating
         if data['MACD'][i] > data['MACD Signal'][i]:
@@ -86,7 +96,7 @@ def buy_sell_function(data):
             buyMACD_list.append(np.nan)
             sellMACD_list.append(np.nan)
 
-    return (buyEMA_list, sellEMA_list, buyMACD_list, sellMACD_list)
+    return (buyEMA_list, sellEMA_list, buyMACD_list, sellMACD_list, short_touch_list)
 
 
 
@@ -96,6 +106,7 @@ df['BuyEMA'] = buy_sell[0]
 df['SellEMA'] = buy_sell[1]
 df['BuyMACD'] = buy_sell[2]
 df['SellMACD'] = buy_sell[3]
+df['Short'] =  buy_sell[4]
 
 
 
@@ -152,8 +163,9 @@ def EMAvisualize():
     plt.plot(EMAfunc(5), label='Short/Fast EMA', color='red', alpha = 0.35)
     plt.plot(EMAfunc(21), label='Middle/Medium EMA', color='orange', alpha = 0.35)
     plt.plot(EMAfunc(63), label='Long/Slow EMA', color='green', alpha = 0.35)
-    plt.scatter(df.index, df['BuyEMA'], color= 'green', marker='^', alpha = 1)
-    plt.scatter(df.index, df['SellEMA'], color= 'red', marker='v', alpha = 1)
+    #plt.scatter(df.index, df['BuyEMA'], color= 'green', marker='^', alpha = 1)
+    #plt.scatter(df.index, df['SellEMA'], color= 'red', marker='v', alpha = 1)
+    plt.scatter(df.index, df['Short'], color= 'black', marker='*', alpha = 1)
     plt.xticks(rotation=45)
     plt.xlabel('Date', fontsize =18)
     plt.ylabel('Close Price', fontsize=18)
@@ -183,6 +195,6 @@ def visualize():
 
 
 
-#EMAvisualize()
+EMAvisualize()
 #MACDvisualize()
 #visualize()
